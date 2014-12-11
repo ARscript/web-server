@@ -1,21 +1,44 @@
 (function(){
   'use strict'
-  var app = require('koa')(),
+  require('express-namespace')
+  var app = require('express')(),
       middleware = require('./lib/middleware'),
       config = require('./lib/config')(),
-      db = require('./platform/db'),
-      services = require('./services'),
-      co = require('co')
+      sockjs = require('sockjs'),
+      http = require('http'),
+      sockjs = require('sockjs'),
+      redis = require('./lib/db')
 
-  app.use(middleware.favicon())
-  app.use(middleware.logger())
+  var conns = [];
+  var dS = sockjs.createServer();
+  dS.on('connection', function(conn){
+    // Push to Array and redis
+    conns.push(conn)
+    console.log(conn)
+    conn.on('data', function(msg){
+      // Send to partner socket
+    })
+
+    conn.on('close', function(){
+      // Send close notice to other party
+    })
+  })
+
   app.use(middleware.responseTime())
-  app.use(middleware.compress())
+  app.use(middleware.compression())
 
-  app.use(middleware.mount('/api/v1', services.v1))
-  co(function *(){
-    app.listen(config.app.port)
+  app.namespace(config.app.namespace, function(){
+    app.get('/', function(req, res){
+      var response = {}
+      response.status = "active"
+      response.timestamp = Date.now()
+      res.send(response)
+    })
+  })
+
+  var server = http.createServer(app).listen(config.app.port, function(){
     console.log('Listening on %d', config.app.port)
   })
 
+  dS.installHandlers(server, {prefix: '/sock'})
 })();
