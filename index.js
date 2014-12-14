@@ -7,26 +7,12 @@
       sockjs = require('sockjs'),
       http = require('http'),
       sockjs = require('sockjs'),
-      redis = require('./lib/db')
-
+      redis = require('./lib/db'),
+      msgParse = require('./lib/msgParse')
   var conns = [];
   var dS = sockjs.createServer();
-  dS.on('connection', function(conn){
-    // Push to Array and redis
-    conns.push(conn)
-    console.log(conn)
-    conn.on('data', function(msg){
-      // Send to partner socket
-    })
-
-    conn.on('close', function(){
-      // Send close notice to other party
-    })
-  })
-
   app.use(middleware.responseTime())
   app.use(middleware.compression())
-
   app.namespace(config.app.namespace, function(){
     app.get('/', function(req, res){
       var response = {}
@@ -35,10 +21,22 @@
       res.send(response)
     })
   })
-
   var server = http.createServer(app).listen(config.app.port, function(){
     console.log('Listening on %d', config.app.port)
+    dS.on('connection', function(conn){
+      // Push to Array and redis
+      conns.push(conn)
+      // Send init msg
+      var msg = msgParse.initConn('SERVER', conn)
+      conn.write(msg)
+      console.log(msg)
+      conn.on('data', function(msg){
+        console.log('--> ' + msg)
+      })
+      conn.on('close', function(){
+        console.log('Socket Closed')
+      })
+    })
+    dS.installHandlers(server, {prefix: '/sock'})
   })
-
-  dS.installHandlers(server, {prefix: '/sock'})
 })();

@@ -21,11 +21,13 @@
     "express": "^4.10.4",
     "express-namespace": "^0.1.1",
     "hiredis": "^0.1.17",
+    "holla": "^0.6.3",
     "moment": "^2.8.4",
     "mongoose": "^3.8.20",
     "redis": "^0.12.1",
     "response-time": "^2.2.0",
-    "sockjs": "^0.3.11"
+    "sockjs": "^0.3.11",
+    "underscore": "^1.7.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
