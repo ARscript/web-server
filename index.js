@@ -8,7 +8,7 @@
       http = require('http'),
       sockjs = require('sockjs'),
       redis = require('./lib/db'),
-      msgParse = require('./lib/msgParse')
+      msgParse = require('msgParse')
   var conns = [];
   var dS = sockjs.createServer();
   app.use(middleware.responseTime())
@@ -27,11 +27,9 @@
       // Push to Array and redis
       conns.push(conn)
       // Send init msg
-      var msg = msgParse.initConn('SERVER', conn)
-      conn.write(msg)
-      console.log(msg)
       conn.on('data', function(msg){
         console.log('--> ' + msg)
+        msgParse.commParse(msg, conn)
       })
       conn.on('close', function(){
         console.log('Socket Closed')
